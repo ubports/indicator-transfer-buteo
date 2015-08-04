@@ -21,5 +21,12 @@ include_directories(
 )
 
 qt5_use_modules(tst-transfer-plugin Core Test)
-add_test(tst-transfer-plugin tst-transfer-plugin)
 add_definitions(-std=c++11)
+
+find_program(DBUS_RUNNER_BIN dbus-test-runner)
+add_test(NAME tst-transfer-plugin
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${DBUS_RUNNER_BIN}
+            --task ${CMAKE_CURRENT_SOURCE_DIR}/buteo-syncfw.py -r -n buteo-syncfw
+            --task ${CMAKE_CURRENT_BINARY_DIR}/tst-transfer-plugin --wait-for=com.meego.msyncd -n tst-transfer-plugin
+)
