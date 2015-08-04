@@ -1,0 +1,20 @@
+Source: indicator-transfer-buteo
+Section: libs
+Priority: optional
+Maintainer: Renato Araujo Oliveira Filho <renato.filho@canonical.com>
+Build-Depends: cmake,
+               debhelper (>= 9),
+               libindicator-transfer-dev,
+               pkg-config,
+               qt5-default,
+               qtbase5-dev,
+Standards-Version: 3.9.5
+Homepage: https://launchpad.net/indicator-transfer-buteo
+
+Package: indicator-transfer-buteo
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         indicator-transfer,
+Description: Transfer indicator Buteo plugin
+ Transfer indicator Buteo plugin
