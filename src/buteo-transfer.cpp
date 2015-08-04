@@ -28,7 +28,8 @@ static const QString iconPath("/usr/share/icons/suru/apps/scalable");
 
 ButeoTransfer::ButeoTransfer(const QString &profileId,
                              const QMap<QString, QVariant> &fields)
-    : m_profileId(profileId)
+    : m_profileId(profileId),
+      m_state(0)
 {
     m_category = fields.value("category", "contacts").toString();
     QString displayName = fields.value("displayname", "Account").toString();
@@ -56,6 +57,45 @@ QString ButeoTransfer::launchApp() const
         url = QString("application:///calendar-app");
     }
     url_dispatch_send(url.toUtf8().data(), NULL, NULL);
+}
+
+void ButeoTransfer::setState(int state)
+{
+    // sync states
+    //SYNC_PROGRESS_INITIALISING = 201,
+    //SYNC_PROGRESS_SENDING_ITEMS ,
+    //SYNC_PROGRESS_RECEIVING_ITEMS,
+    //SYNC_PROGRESS_FINALISING
+
+    // the state can be a sync state or a sync progress
+    // any value bigger than 200 is a sync state
+    if (state >= 200) {
+        m_state = state;
+        progress = syncProgress(0);
+    } else {
+        progress = syncProgress(state);
+    }
+
+}
+
+qreal ButeoTransfer::syncProgress(int progress) const
+{
+    // the progress is a combination of sync state and the progress
+    qreal realProgress = progress;
+    switch(m_state) {
+    case 201: //SYNC_PROGRESS_INITIALISING
+        break;
+    case 203: //SYNC_PROGRESS_RECEIVING_ITEMS
+        realProgress += 100.0;
+        break;
+    case 202: //SYNC_PROGRESS_SENDING_ITEMS
+        realProgress += 200.0;
+        break;
+    case 204: //SYNC_PROGRESS_FINALISING
+        realProgress = 300.0;
+        break;
+    }
+    return (realProgress / 300.0);
 }
 
 bool ButeoTransfer::can_resume() const

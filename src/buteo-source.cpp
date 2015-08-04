@@ -151,13 +151,13 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
              << "Details" << moreDetails;
 
     QString qProfileName = QString::fromUtf8(profileName);
-    std::shared_ptr<Transfer> t = self->m_transfers.value(qProfileName, 0);
+    std::shared_ptr<ButeoTransfer> t = self->m_transfers.value(qProfileName, 0);
     if (!t) {
         QMap<QString, QVariant> fields = self->profileFields(qProfileName);
-        t = std::shared_ptr<Transfer>(new ButeoTransfer(qProfileName, fields));
+        t = std::shared_ptr<ButeoTransfer>(new ButeoTransfer(qProfileName, fields));
         self->m_transfers.insert(qProfileName, t);
         self->m_model->add(t);
-        qDebug() << "Add new profile" << qProfileName << t->title;
+        qDebug() << "Add new profile" << qProfileName << QString::fromStdString(t->title);
     }
 
     /*
@@ -177,7 +177,7 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     case 1:
     case 2:
         t->state = Transfer::RUNNING;
-        t->progress = moreDetails > 0.0 ?  moreDetails / 100.0 : -1.0;
+        t->setState(moreDetails);
         qDebug() << "Update transfer progress" << t->progress;
         break;
     case 3:

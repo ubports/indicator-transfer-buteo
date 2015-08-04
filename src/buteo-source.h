@@ -52,7 +52,7 @@ private:
     GDBusConnection *m_bus;
     guint m_syncStatusId;
 
-    QMap<QString, std::shared_ptr<Transfer> > m_transfers;
+    QMap<QString, std::shared_ptr<ButeoTransfer> > m_transfers;
     std::shared_ptr<MutableModel> m_model;
 
     void setBus(GDBusConnection *bus);

@@ -35,6 +35,7 @@ public:
                   const QMap<QString, QVariant> &fields);
     QString profileId() const;
     QString launchApp() const;
+    void setState(int state);
 
     bool can_resume() const override;
     bool can_pause() const override;
@@ -42,6 +43,9 @@ public:
 private:
     QString m_profileId;
     QString m_category;
+    int m_state;
+
+    qreal syncProgress(int progress) const;
 };
 
 } // namespace transfer
