@@ -19,6 +19,7 @@
 
 #include "buteo-transfer.h"
 
+#include <QtCore/QUuid>
 #include <url-dispatcher.h>
 #include <indicator-transfer/transfer/transfer.h>
 
@@ -31,6 +32,7 @@ ButeoTransfer::ButeoTransfer(const QString &profileId,
     : m_profileId(profileId),
       m_state(0)
 {
+    id = QUuid::createUuid().toString().toStdString();
     m_category = fields.value("category", "contacts").toString();
     QString displayName = fields.value("displayname", "Account").toString();
     QString serviceName = fields.value("remote_service_name", "").toString();
