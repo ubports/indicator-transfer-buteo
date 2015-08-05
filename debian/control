@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Renato Araujo Oliveira Filho <renato.filho@canonical.com>
 Build-Depends: cmake,
                debhelper (>= 9),
+               libaccounts-qt5-dev,
                libindicator-transfer-dev,
                pkg-config,
                qt5-default,
