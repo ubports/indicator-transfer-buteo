@@ -11,6 +11,7 @@ target_link_libraries(tst-transfer-plugin
     ${GMODULE_LIBRARIES}
     ${TRANSFER_INDICATOR_LIBRARIES}
     ${URL_DISPATCHER_LIBRARIES}
+    ${ACCOUNTS_QT5_LIBRARIES}
 )
 
 include_directories(
@@ -18,6 +19,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${TRANSFER_INDICATOR_INCLUDE_DIRS}
     ${URL_DISPATCHER_INCLUDE_DIRS}
+    ${ACCOUNTS_QT5_INCLUDE_DIRS}
 )
 
 qt5_use_modules(tst-transfer-plugin Core Test)

@@ -34,7 +34,7 @@ public:
     ButeoTransfer(const QString &profileId,
                   const QMap<QString, QVariant> &fields);
     QString profileId() const;
-    QString launchApp() const;
+    void launchApp() const;
     void setState(int state);
 
     bool can_resume() const override;
@@ -43,6 +43,7 @@ public:
 private:
     QString m_profileId;
     QString m_category;
+    QString m_appUrl;
     int m_state;
 
     qreal syncProgress(int progress) const;

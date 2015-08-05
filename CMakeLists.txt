@@ -18,6 +18,7 @@ find_package(Qt5Xml REQUIRED)
 pkg_check_modules(GMODULE REQUIRED gmodule-2.0>=2.36)
 pkg_check_modules(TRANSFER_INDICATOR REQUIRED indicator-transfer)
 pkg_check_modules(URL_DISPATCHER REQUIRED url-dispatcher-1)
+pkg_check_modules(ACCOUNTS_QT5 REQUIRED accounts-qt5)
 
 # config file
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"

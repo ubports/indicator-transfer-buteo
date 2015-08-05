@@ -133,6 +133,12 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
                                GVariant* parameters,
                                ButeoSource* self)
 {
+    Q_UNUSED(connection);
+    Q_UNUSED(senderName);
+    Q_UNUSED(objectPath);
+    Q_UNUSED(interfaceName);
+    Q_UNUSED(signalName);
+
     const gchar *profileName = nullptr;
     g_variant_get_child(parameters, 0, "&s", &profileName);
 
@@ -170,6 +176,7 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     *      4 (DONE): Sync session was successfully completed.
     *      5 (ABORTED): Sync session was aborted.
     */
+    bool destroy = false;
     switch(status) {
     case 0:
         t->state = Transfer::QUEUED;
@@ -183,17 +190,22 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     case 3:
         t->state = Transfer::ERROR;
         t->error_string = std::string(message);
+        destroy = true;
         break;
     case 4:
         t->state = Transfer::FINISHED;
+        destroy = true;
         break;
     case 5:
         t->state = Transfer::CANCELED;
+        destroy = true;
         break;
     }
     self->m_model->emit_changed(t->id);
+    if (destroy) {
+        self->m_transfers.remove(qProfileName);
+    }
 }
-
 
 void ButeoSource::setBus(GDBusConnection *bus)
 {

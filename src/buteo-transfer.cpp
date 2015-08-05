@@ -20,12 +20,17 @@
 #include "buteo-transfer.h"
 
 #include <QtCore/QUuid>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDebug>
+
+#include <Accounts/Manager>
+#include <Accounts/Account>
+#include <Accounts/Application>
+
 #include <url-dispatcher.h>
 #include <indicator-transfer/transfer/transfer.h>
 
 using namespace unity::indicator::transfer;
-static const QString iconPath("/usr/share/icons/suru/apps/scalable");
-
 
 ButeoTransfer::ButeoTransfer(const QString &profileId,
                              const QMap<QString, QVariant> &fields)
@@ -34,14 +39,41 @@ ButeoTransfer::ButeoTransfer(const QString &profileId,
 {
     id = QUuid::createUuid().toString().toStdString();
     m_category = fields.value("category", "contacts").toString();
-    QString displayName = fields.value("displayname", "Account").toString();
+
+    // retrieve account
+    int accountId = fields.value("accountid", 0).toInt();
     QString serviceName = fields.value("remote_service_name", "").toString();
-    title = displayName.mid(serviceName.length() + 1).toStdString();
-    // FIXME: load icons from profile or theme
-    if (m_category == "contacts") {
-        app_icon = QString("%1/address-book-app-symbolic.svg").arg(iconPath).toStdString();
-    } else {
-        app_icon = QString("%1/calendar-app-symbolic.svg").arg(iconPath).toStdString();
+    if (accountId > 0) {
+        Accounts::Manager manager;
+        Accounts::Account *account = manager.account(accountId);
+        if (account) {
+            title = account->displayName().toStdString();
+            delete account;
+        } else {
+            qWarning() << "Account not found" << accountId;
+        }
+
+        Accounts::Service service = manager.service(serviceName);
+        if (service.isValid()) {
+            Accounts::ApplicationList apps = manager.applicationList(service);
+            if (!apps.isEmpty()) {
+                // we only consider the first app for now
+                // TODO: check if we need care about a list of apps
+                Accounts::Application app = apps.first();
+                app_icon = app.iconName().toStdString();
+
+                if (app.desktopFilePath().isEmpty()) {
+                    m_appUrl = QString("%1://").arg(app.name());
+                } else {
+                    QFileInfo desktopIfon(app.desktopFilePath());
+                    m_appUrl = QString("application:///%1").arg(desktopIfon.fileName());
+                }
+            } else {
+                qWarning() << "No application found for service" << serviceName;
+            }
+        } else {
+            qWarning() << "Service not found" << serviceName;
+        }
     }
 }
 
@@ -50,15 +82,10 @@ QString ButeoTransfer::profileId() const
     return m_profileId;
 }
 
-QString ButeoTransfer::launchApp() const
+void ButeoTransfer::launchApp() const
 {
-    QString url;
-    if (m_category == "contacts") {
-        url = QString("application:///address-book-app");
-    } else if (m_category == "calendar") {
-        url = QString("application:///calendar-app");
-    }
-    url_dispatch_send(url.toUtf8().data(), NULL, NULL);
+    qDebug() << "application url" << m_appUrl;
+    url_dispatch_send(m_appUrl.toUtf8().data(), NULL, NULL);
 }
 
 void ButeoTransfer::setState(int state)
@@ -86,18 +113,18 @@ qreal ButeoTransfer::syncProgress(int progress) const
     qreal realProgress = progress;
     switch(m_state) {
     case 201: //SYNC_PROGRESS_INITIALISING
+        realProgress = 0.1;
         break;
     case 203: //SYNC_PROGRESS_RECEIVING_ITEMS
-        realProgress += 100.0;
         break;
     case 202: //SYNC_PROGRESS_SENDING_ITEMS
-        realProgress += 200.0;
+        realProgress += 100.0;
         break;
     case 204: //SYNC_PROGRESS_FINALISING
-        realProgress = 300.0;
+        realProgress = 200.0;
         break;
     }
-    return (realProgress / 300.0);
+    return (realProgress / 200.0);
 }
 
 bool ButeoTransfer::can_resume() const
