@@ -70,12 +70,13 @@ void ButeoSource::start(const Transfer::Id &id)
                                                   -1,
                                                   m_cancellable,
                                                   &gError);
+    gboolean result = FALSE;
     if (gError) {
         qWarning() << "Fail to start sync" << gError->message;
         g_error_free(gError);
+    } else {
+        g_variant_get_child(reply, 0, "b", &result);
     }
-    gboolean result = FALSE;
-    g_variant_get_child(reply, 0, "b", &result);
     g_variant_unref(reply);
 
     if (!result) {
