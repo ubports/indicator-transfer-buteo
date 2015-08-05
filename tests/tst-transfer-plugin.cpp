@@ -46,17 +46,11 @@ private Q_SLOTS:
         QQueue<Event> events;
 
         plugin->get_model()->added().connect([&events, &plugin](const Transfer::Id& id){
-            QString pId;
-            std::shared_ptr<Transfer> transfer = plugin->get_model()->get(id);
-            pId = std::static_pointer_cast<ButeoTransfer>(transfer)->profileId();
-            events.append(Event(Event::ADDED, pId));
+            events.append(Event(Event::ADDED, QString::fromStdString(id)));
         });
 
         plugin->get_model()->changed().connect([&events, &plugin](const Transfer::Id& id){
-            QString pId;
-            std::shared_ptr<Transfer> transfer = plugin->get_model()->get(id);
-            pId = std::static_pointer_cast<ButeoTransfer>(transfer)->profileId();
-            events.append(Event(Event::CHANGED, pId));
+            events.append(Event(Event::CHANGED, QString::fromStdString(id)));
         });
 
         // start sync

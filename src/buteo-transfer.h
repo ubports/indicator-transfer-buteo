@@ -33,15 +33,14 @@ class ButeoTransfer : public Transfer
 public:
     ButeoTransfer(const QString &profileId,
                   const QMap<QString, QVariant> &fields);
-    QString profileId() const;
     void launchApp() const;
     void setState(int state);
+    void reset();
 
     bool can_resume() const override;
     bool can_pause() const override;
 
 private:
-    QString m_profileId;
     QString m_category;
     QString m_appUrl;
     int m_state;

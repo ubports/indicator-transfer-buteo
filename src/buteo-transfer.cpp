@@ -19,7 +19,6 @@
 
 #include "buteo-transfer.h"
 
-#include <QtCore/QUuid>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDebug>
 
@@ -34,10 +33,9 @@ using namespace unity::indicator::transfer;
 
 ButeoTransfer::ButeoTransfer(const QString &profileId,
                              const QMap<QString, QVariant> &fields)
-    : m_profileId(profileId),
-      m_state(0)
+    : m_state(0)
 {
-    id = QUuid::createUuid().toString().toStdString();
+    id = profileId.toStdString();
     m_category = fields.value("category", "contacts").toString();
 
     // retrieve account
@@ -77,11 +75,6 @@ ButeoTransfer::ButeoTransfer(const QString &profileId,
     }
 }
 
-QString ButeoTransfer::profileId() const
-{
-    return m_profileId;
-}
-
 void ButeoTransfer::launchApp() const
 {
     qDebug() << "application url" << m_appUrl;
@@ -107,13 +100,20 @@ void ButeoTransfer::setState(int state)
 
 }
 
+void ButeoTransfer::reset()
+{
+    m_state = 0;
+    progress = 0.0;
+    error_string = "";
+}
+
 qreal ButeoTransfer::syncProgress(int progress) const
 {
     // the progress is a combination of sync state and the progress
     qreal realProgress = progress;
     switch(m_state) {
     case 201: //SYNC_PROGRESS_INITIALISING
-        realProgress = 0.1;
+        realProgress = 1;
         break;
     case 203: //SYNC_PROGRESS_RECEIVING_ITEMS
         break;

@@ -52,12 +52,10 @@ private:
     GDBusConnection *m_bus;
     guint m_syncStatusId;
 
-    QMap<QString, std::shared_ptr<ButeoTransfer> > m_transfers;
     std::shared_ptr<MutableModel> m_model;
 
     void setBus(GDBusConnection *bus);
 
-    QString profileId(const Transfer::Id& id) const;
     QMap<QString, QVariant> profileFields(const QString &profileId) const;
 
     static void onBusReady(GObject *object, GAsyncResult *res, ButeoSource *self);

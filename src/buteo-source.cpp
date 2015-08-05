@@ -51,19 +51,20 @@ ButeoSource::~ButeoSource()
 
 void ButeoSource::open(const Transfer::Id &id)
 {
+    qDebug() << "Buteo open" << QString::fromStdString(id);
     open_app(id);
 }
 
 void ButeoSource::start(const Transfer::Id &id)
 {
-    QString profile = profileId(id);
+    qDebug() << "start" << QString::fromStdString(id);
     GError *gError = nullptr;
     GVariant *reply = g_dbus_connection_call_sync(m_bus,
                                                   BUTEO_SERVICE_NAME,
                                                   BUTEO_OBJECT_PATH,
                                                   BUTEO_DBUS_INTEFACE,
                                                   "startSync",
-                                                  g_variant_new("(s)", profile.toUtf8().data()),
+                                                  g_variant_new("(s)", id.c_str()),
                                                    G_VARIANT_TYPE("(b)"),
                                                   G_DBUS_CALL_FLAGS_NONE,
                                                   -1,
@@ -78,7 +79,7 @@ void ButeoSource::start(const Transfer::Id &id)
     g_variant_unref(reply);
 
     if (!result) {
-        qWarning() << "Fail to start sync for profile" << profile;
+        qWarning() << "Fail to start sync for profile" <<  QString::fromStdString(id);
     }
 }
 
@@ -94,14 +95,13 @@ void ButeoSource::resume(const Transfer::Id &id)
 
 void ButeoSource::cancel(const Transfer::Id &id)
 {
-    QString profile = profileId(id);
     GError *gError = nullptr;
     GVariant *reply = g_dbus_connection_call_sync(m_bus,
                                                   BUTEO_SERVICE_NAME,
                                                   BUTEO_OBJECT_PATH,
                                                   BUTEO_DBUS_INTEFACE,
                                                   "abortSync",
-                                                  g_variant_new("(s)", profile.toUtf8().data()),
+                                                  g_variant_new("(s)", id.c_str()),
                                                   nullptr,
                                                   G_DBUS_CALL_FLAGS_NONE,
                                                   -1,
@@ -139,8 +139,8 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     Q_UNUSED(interfaceName);
     Q_UNUSED(signalName);
 
-    const gchar *profileName = nullptr;
-    g_variant_get_child(parameters, 0, "&s", &profileName);
+    const gchar *profileId = nullptr;
+    g_variant_get_child(parameters, 0, "&s", &profileId);
 
     gint status = -1;
     g_variant_get_child(parameters, 1, "i", &status);
@@ -151,19 +151,17 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     gint moreDetails = -1;
     g_variant_get_child(parameters, 3, "i", &moreDetails);
 
-    qDebug() << "Profile" << profileName
-             << "Status" << status
-             << "Message" << message
-             << "Details" << moreDetails;
+    qDebug() << "Profile" << profileId << "\n"
+             << "\tStatus" << status << "\n"
+             << "\tMessage" << message << "\n"
+             << "\tDetails" << moreDetails;
 
-    QString qProfileName = QString::fromUtf8(profileName);
-    std::shared_ptr<ButeoTransfer> t = self->m_transfers.value(qProfileName, 0);
-    if (!t) {
-        QMap<QString, QVariant> fields = self->profileFields(qProfileName);
-        t = std::shared_ptr<ButeoTransfer>(new ButeoTransfer(qProfileName, fields));
-        self->m_transfers.insert(qProfileName, t);
-        self->m_model->add(t);
-        qDebug() << "Add new profile" << qProfileName << QString::fromStdString(t->title);
+    std::shared_ptr<Transfer> transfer = self->m_model->get(profileId);
+    if (!transfer) {
+        QMap<QString, QVariant> fields = self->profileFields(profileId);
+        transfer = std::shared_ptr<Transfer>(new ButeoTransfer(profileId, fields));
+        self->m_model->add(transfer);
+        qDebug() << "Add new profile" << QString::fromUtf8(profileId) << QString::fromStdString(transfer->title);
     }
 
     /*
@@ -176,35 +174,30 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     *      4 (DONE): Sync session was successfully completed.
     *      5 (ABORTED): Sync session was aborted.
     */
-    bool destroy = false;
     switch(status) {
     case 0:
-        t->state = Transfer::QUEUED;
+        transfer->state = Transfer::QUEUED;
+        // reset transfer in case it be an old transfer
+        std::static_pointer_cast<ButeoTransfer>(transfer)->reset();
         break;
     case 1:
     case 2:
-        t->state = Transfer::RUNNING;
-        t->setState(moreDetails);
-        qDebug() << "Update transfer progress" << t->progress;
+        transfer->state = Transfer::RUNNING;
+        std::static_pointer_cast<ButeoTransfer>(transfer)->setState(moreDetails);
+        qDebug() << "Update transfer progress" << transfer->progress;
         break;
     case 3:
-        t->state = Transfer::ERROR;
-        t->error_string = std::string(message);
-        destroy = true;
+        transfer->state = Transfer::ERROR;
+        transfer->error_string = std::string(message);
         break;
     case 4:
-        t->state = Transfer::FINISHED;
-        destroy = true;
+        transfer->state = Transfer::FINISHED;
         break;
     case 5:
-        t->state = Transfer::CANCELED;
-        destroy = true;
+        transfer->state = Transfer::CANCELED;
         break;
     }
-    self->m_model->emit_changed(t->id);
-    if (destroy) {
-        self->m_transfers.remove(qProfileName);
-    }
+    self->m_model->emit_changed(transfer->id);
 }
 
 void ButeoSource::setBus(GDBusConnection *bus)
@@ -216,11 +209,7 @@ void ButeoSource::setBus(GDBusConnection *bus)
     if (m_bus) {
         g_dbus_connection_signal_unsubscribe(m_bus, m_syncStatusId);
         m_syncStatusId = -1;
-
-        Q_FOREACH(const std::shared_ptr<Transfer> &t, m_transfers.values()) {
-            m_model->remove(t->id);
-        }
-        m_transfers.clear();
+        m_model.reset();
         g_object_unref(m_bus);
         m_bus = nullptr;
     }
@@ -296,10 +285,4 @@ QMap<QString, QVariant> ButeoSource::profileFields(const QString &profileId) con
 
     g_variant_unref(reply);
     return result;
-}
-
-QString ButeoSource::profileId(const Transfer::Id &id) const
-{
-    std::shared_ptr<Transfer> transfer = m_model->get(id);
-    return std::static_pointer_cast<ButeoTransfer>(transfer)->profileId();
 }
