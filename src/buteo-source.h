@@ -38,6 +38,7 @@ public:
     ButeoSource();
     ~ButeoSource();
 
+    bool connected() const;
     void open(const Transfer::Id& id) override;
     void start(const Transfer::Id& id) override;
     void pause(const Transfer::Id& id) override;

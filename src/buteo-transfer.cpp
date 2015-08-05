@@ -36,6 +36,7 @@ ButeoTransfer::ButeoTransfer(const QString &profileId,
     : m_state(0)
 {
     id = profileId.toStdString();
+    state = Transfer::QUEUED;
     m_category = fields.value("category", "contacts").toString();
 
     // retrieve account
@@ -81,23 +82,44 @@ void ButeoTransfer::launchApp() const
     url_dispatch_send(m_appUrl.toUtf8().data(), NULL, NULL);
 }
 
-void ButeoTransfer::setState(int state)
+void ButeoTransfer::updateStatus(int status, const QString &message, int moreDetails)
 {
-    // sync states
-    //SYNC_PROGRESS_INITIALISING = 201,
-    //SYNC_PROGRESS_SENDING_ITEMS ,
-    //SYNC_PROGRESS_RECEIVING_ITEMS,
-    //SYNC_PROGRESS_FINALISING
-
-    // the state can be a sync state or a sync progress
-    // any value bigger than 200 is a sync state
-    if (state >= 200) {
-        m_state = state;
-        progress = syncProgress(0);
-    } else {
-        progress = syncProgress(state);
+    /*  status
+      0 (QUEUED): Sync request has been queued or was already in the
+          queue when sync start was requested.
+      1 (STARTED): Sync session has been started.
+      2 (PROGRESS): Sync session is progressing.
+      3 (ERROR): Sync session has encountered an error and has been stopped,
+          or the session could not be started at all.
+      4 (DONE): Sync session was successfully completed.
+      5 (ABORTED): Sync session was aborted.
+    */
+    switch(status) {
+    case 0:
+        state = Transfer::QUEUED;
+        // reset transfer in case it be an old transfer
+        reset();
+        break;
+    case 1:
+    case 2:
+        state = Transfer::RUNNING;
+        updateProgress(moreDetails);
+        break;
+    case 3:
+        state = Transfer::ERROR;
+        error_string = message.toStdString();
+        break;
+    case 4:
+        state = Transfer::FINISHED;
+        break;
+    case 5:
+        state = Transfer::CANCELED;
+        break;
     }
 
+    qDebug() << "Update transfer" << QString::fromStdString(id) << "\n"
+             << "\tprogress" << progress << "\n"
+             << "\tstate" << state;
 }
 
 void ButeoTransfer::reset()
@@ -107,29 +129,54 @@ void ButeoTransfer::reset()
     error_string = "";
 }
 
-qreal ButeoTransfer::syncProgress(int progress) const
+void ButeoTransfer::updateProgress(int progress)
 {
-    // the progress is a combination of sync state and the progress
+    // sync moreDetails
+    //SYNC_PROGRESS_INITIALISING = 201,
+    //SYNC_PROGRESS_SENDING_ITEMS ,
+    //SYNC_PROGRESS_RECEIVING_ITEMS,
+    //SYNC_PROGRESS_FINALISING
+
     qreal realProgress = progress;
+    // the state can be a sync state or a sync progress
+    // any value bigger than 200 is a sync state
+    if (progress >= 200) {
+        m_state = progress;
+        realProgress = 0;
+    }
+
+    // the progress is a combination of sync state and the progress
     switch(m_state) {
     case 201: //SYNC_PROGRESS_INITIALISING
-        realProgress = 1;
+        realProgress = 1.0;
         break;
-    case 203: //SYNC_PROGRESS_RECEIVING_ITEMS
+    case 203: //SYNC_PROGRESS_RECEIVING_ITEMS [0..100]
         break;
-    case 202: //SYNC_PROGRESS_SENDING_ITEMS
+    case 202: //SYNC_PROGRESS_SENDING_ITEMS [100..200]
         realProgress += 100.0;
         break;
     case 204: //SYNC_PROGRESS_FINALISING
         realProgress = 200.0;
         break;
     }
-    return (realProgress / 200.0);
+
+    if (realProgress > 0) {
+        this->progress = (realProgress / 200.0);
+    } else {
+        this->progress = 0.0;
+    }
 }
 
-bool ButeoTransfer::can_resume() const
+bool ButeoTransfer::can_start() const
 {
-    return false;
+    switch(state) {
+    case Transfer::FINISHED:
+    case Transfer::ERROR:
+    case Transfer::CANCELED:
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool ButeoTransfer::can_pause() const

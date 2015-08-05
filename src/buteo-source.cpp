@@ -49,6 +49,11 @@ ButeoSource::~ButeoSource()
     g_clear_object(&m_bus);
 }
 
+bool ButeoSource::connected() const
+{
+    return (m_bus != nullptr);
+}
+
 void ButeoSource::open(const Transfer::Id &id)
 {
     qDebug() << "Buteo open" << QString::fromStdString(id);
@@ -86,11 +91,13 @@ void ButeoSource::start(const Transfer::Id &id)
 
 void ButeoSource::pause(const Transfer::Id &id)
 {
+    Q_UNUSED(id);
     qWarning() << "Buteo plugin does not support pause";
 }
 
 void ButeoSource::resume(const Transfer::Id &id)
 {
+    Q_UNUSED(id);
     qWarning() << "Buteo plugin does not support resume";
 }
 
@@ -162,43 +169,17 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
         QMap<QString, QVariant> fields = self->profileFields(profileId);
         transfer = std::shared_ptr<Transfer>(new ButeoTransfer(profileId, fields));
         self->m_model->add(transfer);
-        qDebug() << "Add new profile" << QString::fromUtf8(profileId) << QString::fromStdString(transfer->title);
+        qDebug() << "Add new profile"
+                 << QString::fromUtf8(profileId)
+                 << QString::fromStdString(transfer->title);
     }
 
-    /*
-    *      0 (QUEUED): Sync request has been queued or was already in the
-    *          queue when sync start was requested.
-    *      1 (STARTED): Sync session has been started.
-    *      2 (PROGRESS): Sync session is progressing.
-    *      3 (ERROR): Sync session has encountered an error and has been stopped,
-    *          or the session could not be started at all.
-    *      4 (DONE): Sync session was successfully completed.
-    *      5 (ABORTED): Sync session was aborted.
-    */
-    switch(status) {
-    case 0:
-        transfer->state = Transfer::QUEUED;
-        // reset transfer in case it be an old transfer
-        std::static_pointer_cast<ButeoTransfer>(transfer)->reset();
-        break;
-    case 1:
-    case 2:
-        transfer->state = Transfer::RUNNING;
-        std::static_pointer_cast<ButeoTransfer>(transfer)->setState(moreDetails);
-        qDebug() << "Update transfer progress" << transfer->progress;
-        break;
-    case 3:
-        transfer->state = Transfer::ERROR;
-        transfer->error_string = std::string(message);
-        break;
-    case 4:
-        transfer->state = Transfer::FINISHED;
-        break;
-    case 5:
-        transfer->state = Transfer::CANCELED;
-        break;
-    }
+    std::static_pointer_cast<ButeoTransfer>(transfer)->updateStatus(status, message, moreDetails);
     self->m_model->emit_changed(transfer->id);
+
+    if (transfer->state == Transfer::CANCELED) {
+        self->m_model->remove(transfer->id);
+    }
 }
 
 void ButeoSource::setBus(GDBusConnection *bus)

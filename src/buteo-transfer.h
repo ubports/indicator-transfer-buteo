@@ -34,18 +34,18 @@ public:
     ButeoTransfer(const QString &profileId,
                   const QMap<QString, QVariant> &fields);
     void launchApp() const;
-    void setState(int state);
+    void updateStatus(int status, const QString &message, int moreDetails);
     void reset();
 
-    bool can_resume() const override;
     bool can_pause() const override;
+    bool can_start() const override;
 
 private:
     QString m_category;
     QString m_appUrl;
     int m_state;
 
-    qreal syncProgress(int progress) const;
+    void updateProgress(int progress);
 };
 
 } // namespace transfer
