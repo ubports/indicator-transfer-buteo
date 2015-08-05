@@ -54,13 +54,8 @@ private Q_SLOTS:
         });
 
         // start sync
-        QDBusMessage startSyncCall = QDBusMessage::createMethodCall(BUTEO_SERVICE_NAME,
-                                                                    BUTEO_OBJECT_PATH,
-                                                                    BUTEO_DBUS_INTEFACE,
-                                                                    "startSync");
-        startSyncCall.setArguments(QList<QVariant>() << QVariant("profile-123"));
-        QDBusConnection::sessionBus().call(startSyncCall);
-
+        QTRY_VERIFY(plugin->connected());
+        plugin->start(QString("profile-123").toStdString());
         QTRY_COMPARE(events.size(), 5);
 
         // start event
