@@ -128,7 +128,12 @@ void ButeoSource::open_app(const Transfer::Id &id)
     std::static_pointer_cast<ButeoTransfer>(transfer)->launchApp();
 }
 
-std::shared_ptr<MutableModel> ButeoSource::get_model()
+void ButeoSource::clear(const Transfer::Id &id)
+{
+    m_model->remove(id);
+}
+
+const std::shared_ptr<const MutableModel> ButeoSource::get_model()
 {
     return m_model;
 }

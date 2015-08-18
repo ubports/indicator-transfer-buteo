@@ -45,8 +45,9 @@ public:
     void resume(const Transfer::Id& id) override;
     void cancel(const Transfer::Id& id) override;
     void open_app(const Transfer::Id& id) override;
+    void clear(const Transfer::Id &id) override;
 
-    std::shared_ptr<MutableModel> get_model() override;
+    const std::shared_ptr<const MutableModel> get_model() override;
 
 private:
     GCancellable *m_cancellable;
