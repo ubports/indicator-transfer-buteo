@@ -116,10 +116,6 @@ void ButeoTransfer::updateStatus(int status, const QString &message, int moreDet
         state = Transfer::CANCELED;
         break;
     }
-
-    qDebug() << "Update transfer" << QString::fromStdString(id) << "\n"
-             << "\tprogress" << progress << "\n"
-             << "\tstate" << state;
 }
 
 void ButeoTransfer::reset()
@@ -170,7 +166,6 @@ void ButeoTransfer::updateProgress(int progress)
 bool ButeoTransfer::can_start() const
 {
     switch(state) {
-    case Transfer::FINISHED:
     case Transfer::ERROR:
     case Transfer::CANCELED:
         return true;
