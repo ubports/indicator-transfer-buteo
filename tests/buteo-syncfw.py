@@ -18,11 +18,9 @@ __copyright__ = '(c) 2015 Canonical Ltd.'
 __license__ = 'LGPL 3+'
 
 import dbus
-from gi.repository import GObject
-
-import dbus
 import dbus.service
 import dbus.mainloop.glib
+from gi.repository import GObject
 
 BUS_NAME = 'com.meego.msyncd'
 MAIN_OBJ = '/synchronizer'

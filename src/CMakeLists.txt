@@ -31,3 +31,13 @@ target_link_libraries(${BUTEO_TRANSFERS_PLUGIN}
 )
 
 add_definitions(-std=c++11)
+
+execute_process(
+    COMMAND pkg-config --variable=plugindir indicator-transfer
+    OUTPUT_VARIABLE INTDICATOR_TRANSFER_PLUGINDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+install(TARGETS ${BUTEO_TRANSFERS_PLUGIN}
+    DESTINATION ${INTDICATOR_TRANSFER_PLUGINDIR}/
+)
