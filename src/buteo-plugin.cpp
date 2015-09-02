@@ -20,6 +20,8 @@
 #include "buteo-source.h"
 
 #include <gmodule.h>
+#include <glib/gi18n.h> // bindtextdomain()
+#include <locale.h>
 
 
 using namespace unity::indicator::transfer;
@@ -29,7 +31,12 @@ extern "C"
 
 G_MODULE_EXPORT Source* get_source()
 {
-  return new ButeoSource;
+    // boilerplate i18n
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, GNOMELOCALEDIR);
+    textdomain(GETTEXT_PACKAGE);
+
+    return new ButeoSource;
 }
 
 }

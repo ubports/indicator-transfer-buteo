@@ -1,5 +1,6 @@
 project(buteo-transfers-plugins)
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -19,6 +20,11 @@ pkg_check_modules(GMODULE REQUIRED gmodule-2.0>=2.36)
 pkg_check_modules(TRANSFER_INDICATOR REQUIRED indicator-transfer)
 pkg_check_modules(URL_DISPATCHER REQUIRED url-dispatcher-1)
 pkg_check_modules(ACCOUNTS_QT5 REQUIRED accounts-qt5)
+
+#i18n
+set(GETTEXT_PACKAGE "indicator-transfer-buteo")
+add_definitions(-DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}"
+                -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
 
 # config file
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
@@ -42,6 +48,7 @@ endif()
 enable_testing()
 add_subdirectory(src)
 add_subdirectory(tests)
+add_subdirectory(po)
 
 # uninstall target
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"

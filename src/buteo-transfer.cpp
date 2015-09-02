@@ -29,6 +29,8 @@
 #include <url-dispatcher.h>
 #include <indicator-transfer/transfer/transfer.h>
 
+#include <glib/gi18n.h>
+
 using namespace unity::indicator::transfer;
 
 ButeoTransfer::ButeoTransfer(const QString &profileId,
@@ -115,6 +117,12 @@ void ButeoTransfer::updateStatus(int status, const QString &message, int moreDet
     case 5:
         state = Transfer::CANCELED;
         break;
+    }
+
+    if (state == Transfer::RUNNING) {
+        custom_state = _("Syncing");
+    } else {
+        custom_state = "";
     }
 }
 
