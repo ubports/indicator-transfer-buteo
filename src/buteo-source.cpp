@@ -169,6 +169,12 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
              << "\tMessage" << message << "\n"
              << "\tDetails" << moreDetails;
 
+    // if errror is a internal error ignore it,
+    // this can be fired while creating the account with disabled service
+    if (moreDetails == 401) {
+        return;
+    }
+
     std::shared_ptr<Transfer> transfer = self->m_model->get(profileId);
     if (!transfer) {
         QMap<QString, QVariant> fields = self->profileFields(profileId);
