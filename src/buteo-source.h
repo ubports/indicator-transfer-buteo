@@ -53,6 +53,7 @@ private:
     GCancellable *m_cancellable;
     GDBusConnection *m_bus;
     guint m_syncStatusId;
+    guint m_profileChangedId;
 
     std::shared_ptr<MutableModel> m_model;
 
@@ -68,6 +69,13 @@ private:
                              const gchar* signalName,
                              GVariant* parameters,
                              ButeoSource* self);
+    static void onProfileChanged(GDBusConnection* connection,
+                                 const gchar* senderName,
+                                 const gchar* objectPath,
+                                 const gchar* interfaceName,
+                                 const gchar* signalName,
+                                 GVariant* parameters,
+                                 ButeoSource* self);
 };
 
 } // namespace transfer

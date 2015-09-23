@@ -35,6 +35,8 @@ using namespace unity::indicator::transfer;
 ButeoSource::ButeoSource()
     : m_cancellable(g_cancellable_new()),
       m_model(std::make_shared<MutableModel>()),
+      m_syncStatusId(0),
+      m_profileChangedId(0),
       m_bus(nullptr)
 {
     g_bus_get(G_BUS_TYPE_SESSION, m_cancellable,
@@ -193,6 +195,53 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
     }
 }
 
+void ButeoSource::onProfileChanged(GDBusConnection* connection,
+                                   const gchar* senderName,
+                                   const gchar* objectPath,
+                                   const gchar* interfaceName,
+                                   const gchar* signalName,
+                                   GVariant* parameters,
+                                   ButeoSource* self)
+{
+    Q_UNUSED(connection);
+    Q_UNUSED(senderName);
+    Q_UNUSED(objectPath);
+    Q_UNUSED(interfaceName);
+    Q_UNUSED(signalName);
+
+/*
+ * "    <signal name=\"signalProfileChanged\">\n"
+"      <arg direction=\"out\" type=\"s\" name=\"aProfileName\"/>\n"
+"      <arg direction=\"out\" type=\"i\" name=\"aChangeType\"/>\n"
+"      <arg direction=\"out\" type=\"s\" name=\"aProfileAsXml\"/>\n"
+"    </signal>\n"
+*/
+
+    const gchar *profileId = nullptr;
+    g_variant_get_child(parameters, 0, "&s", &profileId);
+
+    gint changeType = -1;
+    g_variant_get_child(parameters, 1, "i", &changeType);
+
+    qDebug() << "Profile Changed" << profileId << "\n"
+             << "\tChange type" << changeType;
+
+    /*
+    * \param aChangeType
+    *      0 (ADDITION): Profile was added.
+    *      1 (MODIFICATION): Profile was modified.
+    *      2 (DELETION): Profile was deleted.
+    */
+
+    if (changeType == 2) {
+         std::shared_ptr<Transfer> transfer = self->m_model->get(profileId);
+         if (transfer) {
+             qDebug() << "Removing transfer:" << transfer->id.c_str();
+             self->clear(transfer->id);
+         }
+    }
+}
+
 void ButeoSource::setBus(GDBusConnection *bus)
 {
     if (m_bus == bus) {
@@ -201,7 +250,9 @@ void ButeoSource::setBus(GDBusConnection *bus)
 
     if (m_bus) {
         g_dbus_connection_signal_unsubscribe(m_bus, m_syncStatusId);
-        m_syncStatusId = -1;
+        m_syncStatusId = 0;
+        g_dbus_connection_signal_unsubscribe(m_bus, m_profileChangedId);
+        m_profileChangedId = 0;
         m_model.reset();
         g_object_unref(m_bus);
         m_bus = nullptr;
@@ -217,6 +268,17 @@ void ButeoSource::setBus(GDBusConnection *bus)
                                                             NULL,
                                                             G_DBUS_SIGNAL_FLAGS_NONE,
                                                             (GDBusSignalCallback) onSyncStatus,
+                                                            this,
+                                                            nullptr);
+
+        m_profileChangedId = g_dbus_connection_signal_subscribe(m_bus,
+                                                            BUTEO_SERVICE_NAME,
+                                                            BUTEO_DBUS_INTEFACE,
+                                                            "signalProfileChanged",
+                                                            BUTEO_OBJECT_PATH,
+                                                            NULL,
+                                                            G_DBUS_SIGNAL_FLAGS_NONE,
+                                                            (GDBusSignalCallback) onProfileChanged,
                                                             this,
                                                             nullptr);
     }
