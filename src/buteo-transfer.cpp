@@ -34,8 +34,7 @@
 using namespace unity::indicator::transfer;
 
 ButeoTransfer::ButeoTransfer(const QString &profileId,
-                             const QMap<QString, QVariant> &fields)
-    : m_state(0)
+                             const QVariantMap &fields)
 {
     id = profileId.toStdString();
     state = Transfer::QUEUED;

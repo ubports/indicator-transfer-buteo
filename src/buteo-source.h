@@ -51,15 +51,15 @@ public:
 
 private:
     GCancellable *m_cancellable;
-    GDBusConnection *m_bus;
-    guint m_syncStatusId;
-    guint m_profileChangedId;
+    GDBusConnection *m_bus = nullptr;
+    guint m_syncStatusId = 0;
+    guint m_profileChangedId = 0;
 
     std::shared_ptr<MutableModel> m_model;
 
     void setBus(GDBusConnection *bus);
 
-    QMap<QString, QVariant> profileFields(const QString &profileId) const;
+    QVariantMap profileFields(const QString &profileId) const;
 
     static void onBusReady(GObject *object, GAsyncResult *res, ButeoSource *self);
     static void onSyncStatus(GDBusConnection* connection,

@@ -34,10 +34,7 @@ using namespace unity::indicator::transfer;
 
 ButeoSource::ButeoSource()
     : m_cancellable(g_cancellable_new()),
-      m_model(std::make_shared<MutableModel>()),
-      m_syncStatusId(0),
-      m_profileChangedId(0),
-      m_bus(nullptr)
+      m_model(std::make_shared<MutableModel>())
 {
     g_bus_get(G_BUS_TYPE_SESSION, m_cancellable,
               (GAsyncReadyCallback) onBusReady, this);
@@ -48,7 +45,6 @@ ButeoSource::~ButeoSource()
     g_cancellable_cancel(m_cancellable);
     g_clear_object(&m_cancellable);
     setBus(nullptr);
-    g_clear_object(&m_bus);
 }
 
 bool ButeoSource::connected() const
@@ -84,7 +80,7 @@ void ButeoSource::start(const Transfer::Id &id)
     } else {
         g_variant_get_child(reply, 0, "b", &result);
     }
-    g_variant_unref(reply);
+    g_clear_pointer(&reply, g_variant_unref);
 
     if (!result) {
         qWarning() << "Fail to start sync for profile" <<  QString::fromStdString(id);
@@ -121,7 +117,7 @@ void ButeoSource::cancel(const Transfer::Id &id)
         qWarning() << "Fail to about sync" << gError->message;
         g_error_free(gError);
     }
-    g_variant_unref(reply);
+    g_clear_pointer(&reply, g_variant_unref);
 }
 
 void ButeoSource::open_app(const Transfer::Id &id)
@@ -179,7 +175,7 @@ void ButeoSource::onSyncStatus(GDBusConnection* connection,
 
     std::shared_ptr<Transfer> transfer = self->m_model->get(profileId);
     if (!transfer) {
-        QMap<QString, QVariant> fields = self->profileFields(profileId);
+        QVariantMap fields = self->profileFields(profileId);
         transfer = std::shared_ptr<Transfer>(new ButeoTransfer(profileId, fields));
         self->m_model->add(transfer);
         qDebug() << "Add new profile"
@@ -209,13 +205,13 @@ void ButeoSource::onProfileChanged(GDBusConnection* connection,
     Q_UNUSED(interfaceName);
     Q_UNUSED(signalName);
 
-/*
- * "    <signal name=\"signalProfileChanged\">\n"
-"      <arg direction=\"out\" type=\"s\" name=\"aProfileName\"/>\n"
-"      <arg direction=\"out\" type=\"i\" name=\"aChangeType\"/>\n"
-"      <arg direction=\"out\" type=\"s\" name=\"aProfileAsXml\"/>\n"
-"    </signal>\n"
-*/
+    /*
+    <signal name=\"signalProfileChanged\">\n"
+          <arg direction=\"out\" type=\"s\" name=\"aProfileName\"/>\n"
+          <arg direction=\"out\" type=\"i\" name=\"aChangeType\"/>\n"
+          <arg direction=\"out\" type=\"s\" name=\"aProfileAsXml\"/>\n"
+    </signal>\n"
+    */
 
     const gchar *profileId = nullptr;
     g_variant_get_child(parameters, 0, "&s", &profileId);
@@ -302,9 +298,9 @@ void ButeoSource::onBusReady(GObject *object, GAsyncResult *res, ButeoSource *se
 }
 
 
-QMap<QString, QVariant> ButeoSource::profileFields(const QString &profileId) const
+QVariantMap ButeoSource::profileFields(const QString &profileId) const
 {
-    QMap<QString, QVariant> result;
+    QVariantMap result;
 
     GError *gError = nullptr;
     GVariant *reply = g_dbus_connection_call_sync(m_bus,
@@ -338,6 +334,6 @@ QMap<QString, QVariant> ButeoSource::profileFields(const QString &profileId) con
         }
     }
 
-    g_variant_unref(reply);
+    g_clear_pointer(&reply, g_variant_unref);
     return result;
 }
