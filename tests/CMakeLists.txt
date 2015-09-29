@@ -32,3 +32,12 @@ add_test(NAME tst-transfer-plugin
             --task ${CMAKE_CURRENT_SOURCE_DIR}/buteo-syncfw.py -r -n buteo-syncfw
             --task ${CMAKE_CURRENT_BINARY_DIR}/tst-transfer-plugin --wait-for=com.meego.msyncd -n tst-transfer-plugin
 )
+
+# Coverage reporting
+include(EnableCoverageReport)
+enable_coverage_report(
+  TARGETS
+    tst-transfer-plugin
+  TESTS
+    tst-transfer-plugin
+)

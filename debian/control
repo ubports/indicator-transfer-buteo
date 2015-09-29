@@ -3,6 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Renato Araujo Oliveira Filho <renato.filho@canonical.com>
 Build-Depends: cmake,
+               cmake-extras (>= 0.4),
                dbus-test-runner,
                debhelper (>= 9),
                libaccounts-qt5-dev,
