@@ -1,6 +1,7 @@
-indicator-transfer-buteo (0.1-0ubuntu1) UNRELEASED; urgency=medium
+indicator-transfer-buteo (0.1+15.10.20151002.1-0ubuntu1) wily; urgency=medium
 
   [ Renato Araujo Oliveira Filho ]
   * Initial package
+  * Added new build dep.
 
- -- Renato Araujo Oliveira Filho <renato.filho@canonical.com>  Fri, 02 Oct 2015 11:05:45 -0300
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 02 Oct 2015 14:25:37 +0000
