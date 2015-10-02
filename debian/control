@@ -25,4 +25,4 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          indicator-transfer (>= 0.2),
 Description: Transfer indicator Buteo plugin
- Transfer indicator Buteo plugin
+ Buteo plugin for the Transfer Indicator
