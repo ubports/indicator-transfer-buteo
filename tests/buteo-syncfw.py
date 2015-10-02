@@ -1,16 +1,25 @@
 #!/usr/bin/python3
+'''
+  Copyright 2015 Canonical Ltd.
+
+  This program is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License version 3, as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranties of
+  MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
 
 '''buteo syncfw mock template
 
 This creates the expected methods and properties of the main
 com.meego.msyncd object. You can specify D-BUS property values
 '''
-
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License as published by the Free
-# Software Foundation; either version 3 of the License, or (at your option) any
-# later version.  See http://www.gnu.org/copyleft/lgpl.html for the full text
-# of the license.
 
 __author__ = 'Renato Araujo Oliveira Filho'
 __email__ = 'renatofilho@canonical.com'
