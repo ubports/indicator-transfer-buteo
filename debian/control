@@ -3,10 +3,17 @@ Section: libs
 Priority: optional
 Maintainer: Renato Araujo Oliveira Filho <renato.filho@canonical.com>
 Build-Depends: cmake,
+               dbus-test-runner,
                debhelper (>= 9),
                libaccounts-qt5-dev,
-               libindicator-transfer-dev,
+               libindicator-transfer-dev (>= 0.2),
+               libglib2.0-dev,
+               liburl-dispatcher1-dev,
+               libproperties-cpp-dev,
                pkg-config,
+               python3,
+               python3-dbus,
+               python3-gi,
                qt5-default,
                qtbase5-dev,
 Standards-Version: 3.9.5
@@ -16,6 +23,6 @@ Package: indicator-transfer-buteo
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         indicator-transfer,
+         indicator-transfer (>= 0.2),
 Description: Transfer indicator Buteo plugin
- Transfer indicator Buteo plugin
+ Buteo plugin for the Transfer Indicator
