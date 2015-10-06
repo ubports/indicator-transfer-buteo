@@ -1,3 +1,9 @@
+indicator-transfer-buteo (0.1+15.10.20151006-0ubuntu1) wily; urgency=medium
+
+  * Fix i18n conflict with indicator-transfer (LP: #1502926)
+
+ -- Charles Kerr <charles.kerr@canonical.com>  Tue, 06 Oct 2015 19:59:59 +0000
+
 indicator-transfer-buteo (0.1+15.10.20151002.1-0ubuntu1) wily; urgency=medium
 
   [ Renato Araujo Oliveira Filho ]
