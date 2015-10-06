@@ -29,7 +29,7 @@
 #include <url-dispatcher.h>
 #include <indicator-transfer/transfer/transfer.h>
 
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 using namespace unity::indicator::transfer;
 
