@@ -1,3 +1,9 @@
+indicator-transfer-buteo (0.2+ubports) vivid; urgency=medium
+
+  * Imported to UBports
+
+ -- UBports auto importer <infra@ubports.com>  Mon, 16 Oct 2017 18:21:31 +0200
+
 indicator-transfer-buteo (0.1+15.10.20151006-0ubuntu1) wily; urgency=medium
 
   * Fix i18n conflict with indicator-transfer (LP: #1502926)
