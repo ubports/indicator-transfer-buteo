@@ -1,4 +1,4 @@
-project(buteo-transfers-plugins)
+project (buteo-transfers-plugins)
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -8,8 +8,18 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
-# Standard install paths
+##
+##  GNU standard installation directories
+## 
 include(GNUInstallDirs)
+
+set (PROJECT_VERSION "16.10.0")
+set (PACKAGE ${CMAKE_PROJECT_NAME})
+set (GETTEXT_PACKAGE indicator-transfer-buteo)
+add_definitions (
+    -DGETTEXT_PACKAGE="${GETTEXT_PACKAGE}"
+    -DGNOMELOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}"
+)
 
 find_package(PkgConfig REQUIRED)
 find_package(Qt5Core REQUIRED)
