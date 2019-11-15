@@ -1,10 +1,13 @@
+String stashFileList = '*.gz,*.bz2,*.xz,*.deb,*.ddeb,*.dsc,*.changes,*.buildinfo,lintian.txt'
+String archiveFileList = '*.gz,*.bz2,*.xz,*.deb,*.ddeb,*.dsc,*.changes,*.buildinfo'
+
 pipeline {
   agent any
   stages {
     stage('Build source') {
       steps {
         sh '/usr/bin/build-source.sh'
-        stash(name: 'source', includes: '*.gz,*.bz2,*.xz,*.deb,*.dsc,*.changes,*.buildinfo,lintian.txt')
+        stash(name: 'source', includes: stashFileList)
         cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, deleteDirs: true)
       }
     }
@@ -14,7 +17,7 @@ pipeline {
           unstash 'source'
           sh '''export architecture="armhf"
 build-binary.sh'''
-          stash(includes: '*.gz,*.bz2,*.xz,*.deb,*.dsc,*.changes,*.buildinfo,lintian.txt', name: 'build')
+          stash(includes: stashFileList, name: 'build')
           cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, deleteDirs: true)
         }
         
@@ -23,7 +26,7 @@ build-binary.sh'''
     stage('Results') {
       steps {
         unstash 'build'
-        archiveArtifacts(artifacts: '*.gz,*.bz2,*.xz,*.deb,*.dsc,*.changes,*.buildinfo', fingerprint: true, onlyIfSuccessful: true)
+        archiveArtifacts(artifacts: archiveFileList, fingerprint: true, onlyIfSuccessful: true)
         sh '''export architecture="armhf"
 /usr/bin/build-repo.sh'''
       }
